@@ -10,7 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/ifox6677/padavan-ng:latest
+      image: ghcr.io/ifox6677/padavan-ng:master
       options: --user 1000:1000
     steps:
       - name: Checkout repository
