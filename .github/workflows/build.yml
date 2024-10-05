@@ -9,8 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: registry.github.com/ifox6677/padavan-ng
+    container: docker.io/ifox6677/padavan-ng  # 使用 Docker Hub 的镜像
     defaults: { run: { shell: bash } }
+    
     steps:
     - uses: actions/checkout@v4
 
