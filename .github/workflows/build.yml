@@ -1,10 +1,10 @@
 name: Build firmware
 
 on:
-dispatch:
-  push:
-    tags:
-      - '*'
+  dispatch:
+    push:
+      tags:
+        - '*'
 
 jobs:
   build:
@@ -76,9 +76,23 @@ jobs:
     - name: Check firmware size
       run: |
         partitions=padavan-ng/trunk/configs/boards/$CONFIG_VENDOR/$CONFIG_FIRMWARE_PRODUCT_ID/partitions.config
+        echo "Partitions config file: $partitions"
+        
+        # 检查 partitions.config 文件是否存在
+        if [[ ! -f "$partitions" ]]; then
+          echo "Error: Partitions config file not found!"
+          exit 1
+        fi
+        
+        # 从配置文件中提取最大固件大小
         max_fw_size="$(awk '/Firmware/ { getline; getline; sub(",", ""); print strtonum($2); }' "$partitions")"
+        echo "Max firmware size: $max_fw_size"
+        
+        # 获取生成的固件大小
         fw_size="$(stat -c %s "$FW_FILE_NAME")"
-
+        echo "Firmware size: $fw_size"
+        
+        # 检查固件大小是否超过最大值
         if ((fw_size > max_fw_size)); then
           fw_size_fmtd="$(numfmt --grouping "$fw_size") bytes"
           max_fw_size_fmtd="$(numfmt --grouping "$max_fw_size") bytes"
