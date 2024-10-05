@@ -1,0 +1,26 @@
+name: Test Container
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/ifox6677/padavan-ng:latest
+      options: --user 1000:1000
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Test container
+        run: |
+          echo "Container is running"
+          uname -a
+          # 其他简单命令以确认环境
