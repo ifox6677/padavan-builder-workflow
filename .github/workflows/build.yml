@@ -1,7 +1,7 @@
 name: Build firmware
 
 on:
-  workflow_dispatch:
+dispatch:
   push:
     tags:
       - '*'
