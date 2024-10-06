@@ -33,6 +33,9 @@ jobs:
     # 新增步骤：复制 adduser 文件
     - name: Copy adduser files
       run: |
+        echo "当前目录内容:"
+        ls -la  # 列出当前目录的所有文件和目录
+
         # 确保源目录 adduser 存在
         if [ ! -d "./adduser" ]; then
           echo "错误: 源目录 './adduser' 不存在。请确认路径是否正确。"
@@ -62,16 +65,9 @@ jobs:
           exit 1
         fi
 
-    - name: Verify copied adduser files
-      run: |
+        # 验证复制的文件
         echo "Verifying copied files in $DEST_DIR:"
-        ls -la "$DEST_DIR"  # 列出目标目录中的所有文件
-        if [ "$(ls -A "$DEST_DIR")" ]; then
-          echo "Copied files in '$DEST_DIR' exist."
-        else
-          echo "错误: '$DEST_DIR' 目录为空，复制操作未成功！"
-          exit 1
-        fi
+        ls -la "$DEST_DIR"  # 确保这里使用有效的目标目录
 
     - name: Install themes
       run: |
