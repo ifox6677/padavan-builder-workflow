@@ -44,6 +44,7 @@ jobs:
 
         # 确保目标目录存在，如果不存在则创建
         DEST_DIR="padavan-ng/trunk/user"
+        echo "目标目录为: $DEST_DIR"  # 输出目标目录
         if [ ! -d "$DEST_DIR" ]; then
           echo "目标目录 '$DEST_DIR' 不存在，正在创建..."
           mkdir -p "$DEST_DIR"
@@ -65,7 +66,8 @@ jobs:
           exit 1
         fi
 
-        # 验证复制的文件
+    - name: Verify copied adduser files
+      run: |
         echo "Verifying copied files in $DEST_DIR:"
         ls -la "$DEST_DIR"  # 确保这里使用有效的目标目录
 
