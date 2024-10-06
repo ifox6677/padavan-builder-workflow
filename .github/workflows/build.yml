@@ -68,6 +68,7 @@ jobs:
 
     - name: Verify copied adduser files
       run: |
+        DEST_DIR="padavan-ng/trunk/user"  # 确保这里重新设置 DEST_DIR
         echo "Verifying copied files in $DEST_DIR:"
         ls -la "$DEST_DIR"  # 确保这里使用有效的目标目录
 
