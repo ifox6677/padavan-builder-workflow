@@ -42,6 +42,29 @@ jobs:
           done
         fi
 
+    - name: Add language dictionary
+      run: |
+        mkdir -p padavan-ng/trunk/user/www/dict
+        cp -r dictionaries/* padavan-ng/trunk/user/www/dict/
+
+    - name: Verify dictionary addition
+      run: |
+        echo "Contents of padavan-ng/trunk/user/www/dict:"
+        ls -la padavan-ng/trunk/user/www/dict/
+        # 检查特定文件（根据需要修改）
+        if [[ -f padavan-ng/trunk/user/www/dict/CN.dict]]; then
+          echo "Dictionary file exists."
+        else
+          echo "Dictionary file is missing!"
+          exit 1
+        fi
+
+    - name: Upload dictionary as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: dictionary-files
+        path: padavan-ng/trunk/user/www/dict/
+
     - name: Run custom pre-build script
       run: '[[ -f pre-build.sh ]] && . pre-build.sh || :'
 
