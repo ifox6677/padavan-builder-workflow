@@ -62,6 +62,17 @@ jobs:
           exit 1
         fi
 
+    - name: Verify copied adduser files
+      run: |
+        echo "Verifying copied files in $DEST_DIR:"
+        ls -la "$DEST_DIR"  # 列出目标目录中的所有文件
+        if [ "$(ls -A "$DEST_DIR")" ]; then
+          echo "Copied files in '$DEST_DIR' exist."
+        else
+          echo "错误: '$DEST_DIR' 目录为空，复制操作未成功！"
+          exit 1
+        fi
+
     - name: Install themes
       run: |
         if [[ -n $PADAVAN_THEMES ]]; then
