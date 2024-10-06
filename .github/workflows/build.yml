@@ -52,7 +52,7 @@ jobs:
         echo "Contents of padavan-ng/trunk/user/www/dict:"
         ls -la padavan-ng/trunk/user/www/dict/
         # 检查特定文件（根据需要修改）
-        if [[ -f padavan-ng/trunk/user/www/dict/CN.dict]]; then
+        if [[ -f padavan-ng/trunk/user/www/dict/CN.dict ]]; then
           echo "Dictionary file exists."
         else
           echo "Dictionary file is missing!"
