@@ -84,28 +84,6 @@ jobs:
           done
         fi
 
-     missing!"
-          exit 1
-        fi
-
-    - name: Replace Makefile
-      run: |
-        # 确保新的 Makefile 存在于仓库的 makefiles 目录中
-        if [[ -f dictionaries/Makefile ]]; then
-          cp dictionaries/Makefile padavan-ng/trunk/user/www/Makefile
-          echo "Makefile 已成功替换。"
-        else
-          echo "新的 Makefile 未找到！"
-          exit 1
-        fi
-
-    - name: Verify Makefile replacement
-      run: |
-        echo "Contents of padavan-ng/trunk/user/www/:"
-        ls -la padavan-ng/trunk/user/www/
-        echo "Displaying the new Makefile content:"
-        cat padavan-ng/trunk/user/www/Makefile
-
     - name: Run custom pre-build script
       run: '[[ -f pre-build.sh ]] && . pre-build.sh || :'
 
