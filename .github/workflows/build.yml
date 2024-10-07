@@ -23,7 +23,11 @@ jobs:
     - name: Download cross-compilation toolchain
       run: |
         mkdir -p $TOOLCHAIN_PATH
-        wget -qO- http://url-to-your-toolchain.tar.gz | tar -xz -C $TOOLCHAIN_PATH
+        echo "Downloading toolchain..."
+        curl -L -o toolchain.tar.gz http://url-to-your-toolchain.tar.gz || { echo "Failed to download toolchain"; exit 1; }
+        echo "Extracting toolchain..."
+        tar -xzvf toolchain.tar.gz -C $TOOLCHAIN_PATH || { echo "Failed to extract toolchain"; exit 1; }
+        echo "Toolchain installed at $TOOLCHAIN_PATH"
 
     - name: Check toolchain file
       run: |
@@ -37,8 +41,8 @@ jobs:
 
     - name: Install build dependencies
       run: |
-        apt-get update
-        apt-get install -y build-essential cmake git wget libssl-dev zlib1g-dev
+         apt-get update
+         apt-get install -y build-essential cmake git wget libssl-dev zlib1g-dev
 
     - name: Build Libuv
       run: |
@@ -67,7 +71,6 @@ jobs:
           -DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_FILE \
           -DCMAKE_BUILD_TYPE=Release
         make -j$(nproc)
-        make install  # 可选：如果您想要安装
 
     - name: Build firmware
       run: |
