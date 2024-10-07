@@ -142,7 +142,6 @@ endif
 
 ifdef CONFIG_USB_SUPPORT
 dir_y						+= p910nd
-dir_y						+= usb-modeswitch
 dir_y						+= comgt-0.32
 dir_y						+= uqmi
 dir_$(CONFIG_FIRMWARE_INCLUDE_LPRD)		+= LPRng
