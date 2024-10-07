@@ -80,8 +80,8 @@ jobs:
     # 新增步骤：安装构建依赖
     - name: Install build dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential cmake git wget libssl-dev zlib1g-dev
+        apt-get update
+        apt-get install -y build-essential cmake git wget libssl-dev zlib1g-dev
 
     # 新增步骤：创建 staging 目录
     - name: Create staging directory
@@ -93,7 +93,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: $STAGE_PATH
-        key: ${{ runner.os }}-stage-${{ hashFiles('**/libuv-v1.42.0.tar.gz', '**/json-c-0.15.tar.gz', '**/libwebsockets-4.3.1.tar.gz') }}
+        key: ${{ runner.os }}-stage-${{ env.LIBUV_VERSION }}-${{ env.JSON_C_VERSION }}-${{ env.LIBWEBSOCKETS_VERSION }}
         restore-keys: |
           ${{ runner.os }}-stage-
 
