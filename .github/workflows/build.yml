@@ -11,93 +11,40 @@ jobs:
     runs-on: ubuntu-latest
     container: registry.gitlab.com/hadzhioglu/padavan-ng
     defaults: { run: { shell: bash } }
+
     env:
       TOOLCHAIN_PATH: /toolchain  # 假设工具链解压路径
-      STAGE_PATH: /stage/mipsel   # 安装依赖库的路径
-      CMAKE_TOOLCHAIN_FILE: /cross-mipsel-linux.cmake  # 工具链文件路径
+      STAGE_PATH: /stage/mipsel    # 安装依赖库的路径
+      CMAKE_TOOLCHAIN_FILE: $TOOLCHAIN_PATH/cross-mipsel-linux.cmake  # 工具链文件路径
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Get variables
+    - name: Download cross-compilation toolchain
       run: |
-        sed -i 's|\r$||g' variables build.config
-        . <(cat variables build.config)
-        PADAVAN_THEMES="${PADAVAN_THEMES[*]}"
-        for v in "${!PADAVAN_@}" "${!CONFIG_@}"; do
-          echo "$v=${!v}" >> $GITHUB_ENV
-        done
+        mkdir -p $TOOLCHAIN_PATH
+        wget -qO- http://url-to-your-toolchain.tar.gz | tar -xz -C $TOOLCHAIN_PATH
 
-    - name: Download sources and toolchain
+    - name: Check toolchain file
       run: |
-        git config --global --add safe.directory '*'
-        git clone -b "$PADAVAN_BRANCH" "$PADAVAN_REPO"
-        git -C padavan-ng checkout "$PADAVAN_COMMIT"
-        wget -qO- "$PADAVAN_TOOLCHAIN_URL" | tar -C padavan-ng --zstd -xf -
-
-    # 新增步骤：复制 adduser 文件
-    - name: Copy adduser files
-      run: |
-        echo "当前目录内容:"
-        ls -la  # 列出当前目录的所有文件和目录
-
-        # 确保源目录 adduser 存在
-        if [ ! -d "./adduser" ]; then
-          echo "错误: 源目录 './adduser' 不存在。请确认路径是否正确。"
-          exit 1
-        fi
-
-        # 确保目标目录存在，如果不存在则创建
-        DEST_DIR="padavan-ng/trunk/user"
-        echo "目标目录为: $DEST_DIR"  # 输出目标目录
-        if [ ! -d "$DEST_DIR" ]; then
-          echo "目标目录 '$DEST_DIR' 不存在，正在创建..."
-          mkdir -p "$DEST_DIR"
-          if [ $? -ne 0 ]; then
-            echo "错误: 无法创建目标目录 '$DEST_DIR'。请检查权限。"
-            exit 1
-          fi
-        fi
-
-        # 复制所有文件和目录，包括隐藏文件
-        echo "正在将 './adduser' 中的所有内容复制到 '$DEST_DIR'..."
-        cp -a ./adduser/. "$DEST_DIR"/
-
-        # 验证复制是否成功
-        if [ $? -eq 0 ]; then
-          echo "文件复制成功！"
+        echo "Checking for toolchain file at $CMAKE_TOOLCHAIN_FILE"
+        if [ -f $CMAKE_TOOLCHAIN_FILE ]; then
+          echo "Toolchain file found!"
         else
-          echo "错误: 文件复制过程中出现问题。"
+          echo "Error: Toolchain file not found!"
           exit 1
         fi
 
-    - name: Verify copied adduser files
-      run: |
-        DEST_DIR="padavan-ng/trunk/user"  # 确保这里重新设置 DEST_DIR
-        echo "Verifying copied files in $DEST_DIR:"
-        ls -la "$DEST_DIR"  # 确保这里使用有效的目标目录
-
-    # 新增步骤：安装构建依赖
     - name: Install build dependencies
       run: |
         apt-get update
         apt-get install -y build-essential cmake git wget libssl-dev zlib1g-dev
 
-    # 新增步骤：创建 staging 目录
-    - name: Create staging directory
+    - name: Set CMake environment variables
       run: |
-        mkdir -p $STAGE_PATH
+        export CMAKE_MAKE_PROGRAM=/usr/bin/make  # 根据您的系统路径调整
+        export CMAKE_C_COMPILER=$TOOLCHAIN_PATH/bin/mipsel-linux-uclibc-gcc  # 根据实际情况更新路径
 
-    # 新增步骤：缓存 staging 库
-    - name: Cache staging libraries
-      uses: actions/cache@v3
-      with:
-        path: $STAGE_PATH
-        key: ${{ runner.os }}-stage-${{ env.LIBUV_VERSION }}-${{ env.JSON_C_VERSION }}-${{ env.LIBWEBSOCKETS_VERSION }}
-        restore-keys: |
-          ${{ runner.os }}-stage-
-
-    # 新增步骤：下载并交叉编译 Libuv
     - name: Download and cross-compile Libuv
       run: |
         set -e
@@ -115,104 +62,17 @@ jobs:
         cd ../../
         rm -rf libuv-v1.42.0
 
-    # 新增步骤：下载并交叉编译 JSON-C
-    - name: Download and cross-compile JSON-C
+    # 新增步骤：构建 ttyd
+    - name: Download ttyd
       run: |
-        set -e
-        wget https://github.com/json-c/json-c/releases/download/json-c-0.15/json-c-0.15.tar.gz
-        tar -zxvf json-c-0.15.tar.gz
-        cd json-c-0.15
+        wget -qO- https://github.com/tsl0922/ttyd/archive/1.6.2.tar.gz | tar -xz -C /tmp
+        cd /tmp/ttyd-1.6.2
         mkdir build && cd build
         cmake .. \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_INSTALL_PREFIX=$STAGE_PATH \
           -DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_FILE \
-          -DBUILD_SHARED_LIBS=OFF
-        make -j$(nproc) VERBOSE=1
-        make install
-        cd ../../
-        rm -rf json-c-0.15
-
-    # 新增步骤：下载并交叉编译 Libwebsockets
-    - name: Download and cross-compile Libwebsockets
-      run: |
-        set -e
-        wget https://libwebsockets.org/sites/default/files/libwebsockets-4.3.1.tar.gz
-        tar -zxvf libwebsockets-4.3.1.tar.gz
-        cd libwebsockets-4.3.1
-        mkdir build && cd build
-        cmake .. \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_INSTALL_PREFIX=$STAGE_PATH \
-          -DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_FILE \
-          -DLWS_WITH_SSL=OFF \
-          -DLWS_WITH_SHARED=OFF \
-          -DLWS_WITHOUT_EXTENSIONS=ON
-        make -j$(nproc) VERBOSE=1
-        make install
-        cd ../../
-        rm -rf libwebsockets-4.3.1
-
-    # 新增步骤：设置环境变量以供 CMake 查找依赖库
-    - name: Set environment variables for CMake
-      run: |
-        echo "export PKG_CONFIG_PATH=$STAGE_PATH/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
-        echo "export LD_LIBRARY_PATH=$STAGE_PATH/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-        echo "export CMAKE_PREFIX_PATH=$STAGE_PATH:$CMAKE_PREFIX_PATH" >> $GITHUB_ENV
-
-    - name: Install themes
-      run: |
-        if [[ -n $PADAVAN_THEMES ]]; then
-          git clone --depth 1 -b "$PADAVAN_THEMES_BRANCH" "$PADAVAN_THEMES_REPO" themes
-          cp -r themes/common-theme themes/jquery.js padavan-ng/trunk/user/www/n56u_ribbon_fixed
-
-          for theme in $PADAVAN_THEMES; do
-            echo "Installing $theme theme"
-            cp -r "themes/$theme-theme" padavan-ng/trunk/user/www/n56u_ribbon_fixed
-          done
-        fi
-
-    - name: Replace Makefile
-      run: |
-        # 确保新的 Makefile 存在于仓库的 makefiles 目录中
-        if [[ -f dictionaries/Makefile ]]; then
-          cp dictionaries/Makefile padavan-ng/trunk/user/www/Makefile
-          echo "Makefile 已成功替换。"
-        else
-          echo "新的 Makefile 未找到！"
-          exit 1
-        fi
-
-    - name: Verify Makefile replacement
-      run: |
-        echo "Contents of padavan-ng/trunk/user/www/:"
-        ls -la padavan-ng/trunk/user/www/
-        echo "Displaying the new Makefile content:"
-        cat padavan-ng/trunk/user/www/Makefile
-
-    - name: Run custom pre-build script
-      run: '[[ -f pre-build.sh ]] && . pre-build.sh || :'
-
-    # 新增步骤：下载并编译 ttyd 及其依赖
-    - name: Download and cross-compile ttyd
-      run: |
-        set -e
-        cd padavan-ng/trunk/user
-        wget -qO ttyd-1.6.2.tar.gz https://github.com/tsl0922/ttyd/archive/1.6.2.tar.gz
-        tar -zxvf ttyd-1.6.2.tar.gz
-        cd ttyd-1.6.2
-        mkdir build && cd build
-        cmake \
-          -DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_FILE \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DLIBUV_LIBRARY=$STAGE_PATH/lib/libuv.a \
-          -DLIBUV_INCLUDE_DIR=$STAGE_PATH/include \
-          -DJSON-C_LIBRARY=$STAGE_PATH/lib/libjson-c.a \
-          -DJSON-C_INCLUDE_DIR=$STAGE_PATH/include \
-          -DLIBWEBSOCKETS_LIBRARY=$STAGE_PATH/lib/libwebsockets.a \
-          -DLIBWEBSOCKETS_INCLUDE_DIR=$STAGE_PATH/include \
-          ..
-        make -j$(nproc) VERBOSE=1
+          -DCMAKE_BUILD_TYPE=Release
+        make -j$(nproc)
+        make install  # 可选：如果您想要安装
 
     - name: Build firmware
       run: |
@@ -221,9 +81,6 @@ jobs:
         ./clear_tree.sh
         ./build_firmware.sh
         popd
-
-    - name: Run custom post-build script
-      run: '[[ -f post-build.sh ]] && . post-build.sh || :'
 
     - name: Prepare artifacts
       run: |
