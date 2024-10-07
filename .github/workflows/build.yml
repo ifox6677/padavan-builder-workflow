@@ -13,8 +13,8 @@ jobs:
     defaults: { run: { shell: bash } }
 
     env:
-      TOOLCHAIN_PATH: /toolchain  # 假设工具链解压路径
-      STAGE_PATH: /stage/mipsel    # 安装依赖库的路径
+      TOOLCHAIN_PATH: /toolchain  # 工具链的路径
+      STAGE_PATH: /stage/mipsel    # 依赖库的安装路径
       CMAKE_TOOLCHAIN_FILE: $TOOLCHAIN_PATH/cross-mipsel-linux.cmake  # 工具链文件路径
 
     steps:
@@ -40,12 +40,7 @@ jobs:
         apt-get update
         apt-get install -y build-essential cmake git wget libssl-dev zlib1g-dev
 
-    - name: Set CMake environment variables
-      run: |
-        export CMAKE_MAKE_PROGRAM=/usr/bin/make  # 根据您的系统路径调整
-        export CMAKE_C_COMPILER=$TOOLCHAIN_PATH/bin/mipsel-linux-uclibc-gcc  # 根据实际情况更新路径
-
-    - name: Download and cross-compile Libuv
+    - name: Build Libuv
       run: |
         set -e
         wget https://dist.libuv.org/dist/v1.42.0/libuv-v1.42.0.tar.gz
