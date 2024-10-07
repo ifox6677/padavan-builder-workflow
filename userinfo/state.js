@@ -568,7 +568,7 @@ function show_footer(){
 	footer_code +='<div align="center" class="copyright"><#footer_copyright_desc#></div>\n';
 	footer_code +='<div align="center">\n';
 	footer_code +='  <span>开发者:张金钱</span></br>\n';
-	footer_code +='  <span>版权所有</span></br>\n';
+	footer_code +='  <span>基于 MIT 许可证的代码进行修改，原作者: Andy Padavan, Linaro, 等</span></br>\n';
 	footer_code +='  <span>欢迎大家使用修改</span></br>\n';
 	footer_code +='</div>\n';
 
