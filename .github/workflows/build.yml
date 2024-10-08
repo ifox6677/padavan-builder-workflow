@@ -10,119 +10,135 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container: registry.gitlab.com/hadzhioglu/padavan-ng
-    defaults: { run: { shell: bash } }
+    defaults: 
+      run: 
+        shell: bash
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Get variables
-      run: |
-        sed -i 's|\r$||g' variables build.config
-        . <(cat variables build.config)
-        PADAVAN_THEMES="${PADAVAN_THEMES[*]}"
-        for v in "${!PADAVAN_@}" "${!CONFIG_@}"; do
-          echo "$v=${!v}" >> $GITHUB_ENV
-        done
-
-    - name: Download sources and toolchain
-      run: |
-        git config --global --add safe.directory '*'
-        git clone -b "$PADAVAN_BRANCH" "$PADAVAN_REPO"
-        git -C padavan-ng checkout "$PADAVAN_COMMIT"
-        wget -qO- "$PADAVAN_TOOLCHAIN_URL" | tar -C padavan-ng --zstd -xf -
-
-    - name: Install themes
-      run: |
-        if [[ -n $PADAVAN_THEMES ]]; then
-          git clone --depth 1 -b "$PADAVAN_THEMES_BRANCH" "$PADAVAN_THEMES_REPO" themes
-          cp -r themes/common-theme themes/jquery.js padavan-ng/trunk/user/www/n56u_ribbon_fixed
-
-          for theme in $PADAVAN_THEMES; do
-            echo "Installing $theme theme"
-            cp -r "themes/$theme-theme" padavan-ng/trunk/user/www/n56u_ribbon_fixed
+      - name: Get variables
+        run: |
+          sudo apt-get update && sudo apt-get install -y libtool-bin gperf python3-docutils autopoint gettext ccache
+          sed -i 's|\r$||g' variables build.config
+          . <(cat variables build.config)
+          PADAVAN_THEMES="${PADAVAN_THEMES[*]}"
+          for v in "${!PADAVAN_@}" "${!CONFIG_@}"; do
+            echo "$v=${!v}" >> $GITHUB_ENV
           done
-        fi
 
-    - name: Add language dictionary
-      run: |
-        mkdir -p padavan-ng/trunk/user/www/dict
-        cp -r dictionaries/* padavan-ng/trunk/user/www/dict/
+      - name: Download sources and toolchain
+        run: |
+          git config --global --add safe.directory '*'
+          git clone -b "$PADAVAN_BRANCH" "$PADAVAN_REPO"
+          git -C padavan-ng checkout "$PADAVAN_COMMIT"
+          wget -qO- "$PADAVAN_TOOLCHAIN_URL" | tar -C padavan-ng --zstd -xf -
 
-    - name: Verify dictionary addition
-      run: |
-        echo "Contents of padavan-ng/trunk/user/www/dict:"
-        ls -la padavan-ng/trunk/user/www/dict/
-        # 检查特定文件（根据需要修改）
-        if [[ -f padavan-ng/trunk/user/www/dict/CN.dict ]]; then
-          echo "Dictionary file exists."
-        else
-          echo "Dictionary file is missing!"
-          exit 1
-        fi
+      - name: Replace statefile
+        run: |
+          if [ -f userinfo/state.js ]; then
+            # 确保目标目录存在
+            # mkdir -p padavan-ng/trunk/user/www/n56u_ribbon_fixed
+            cp userinfo/state.js padavan-ng/trunk/user/www/n56u_ribbon_fixed/state.js
+            echo "statefile 已成功替换。"
+          else
+            echo "新的 statefile 'userinfo/state.js' 未找到！"
+            exit 1
+          fi
 
-    - name: Upload dictionary as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: dictionary-files
-        path: padavan-ng/trunk/user/www/dict/
+      # 新增步骤：复制 adduser 文件
+      - name: Copy adduser files
+        run: |
+          echo "当前目录内容:"
+          ls -la  # 列出当前目录的所有文件和目录
 
-    - name: Replace Makefile
-      run: |
-        # 确保新的 Makefile 存在于仓库的 makefiles 目录中
-        if [[ -f dictionaries/Makefile ]]; then
-          cp dictionaries/Makefile padavan-ng/trunk/user/www/Makefile
-          echo "Makefile 已成功替换。"
-        else
-          echo "新的 Makefile 未找到！"
-          exit 1
-        fi
+          # 确保源目录 adduser 存在
+          if [ ! -d "./adduser" ]; then
+            echo "错误: 源目录 './adduser' 不存在。请确认路径是否正确。"
+            exit 1
+          fi
 
-    - name: Verify Makefile replacement
-      run: |
-        echo "Contents of padavan-ng/trunk/user/www/:"
-        ls -la padavan-ng/trunk/user/www/
-        echo "Displaying the new Makefile content:"
-        cat padavan-ng/trunk/user/www/Makefile
+          # 确保目标目录存在，如果不存在则创建
+          DEST_DIR="padavan-ng/trunk/user"
+          echo "目标目录为: $DEST_DIR"  # 输出目标目录
+          if [ ! -d "$DEST_DIR" ]; then
+            echo "目标目录 '$DEST_DIR' 不存在，正在创建..."
+            mkdir -p "$DEST_DIR"
+            if [ $? -ne 0 ]; then
+              echo "错误: 无法创建目标目录 '$DEST_DIR'。请检查权限。"
+              exit 1
+            fi
+          fi
 
-    - name: Run custom pre-build script
-      run: '[[ -f pre-build.sh ]] && . pre-build.sh || :'
+          # 复制所有文件和目录，包括隐藏文件
+          echo "正在将 './adduser' 中的所有内容复制到 '$DEST_DIR'..."
+          cp -a ./adduser/. "$DEST_DIR"/
 
-    - name: Build firmware
-      run: |
-        cp build.config padavan-ng/trunk/.config
-        pushd padavan-ng/trunk
-        ./clear_tree.sh
-        ./build_firmware.sh
-        popd
+          # 验证复制是否成功
+          if [ $? -eq 0 ]; then
+            echo "文件复制成功！"
+          else
+            echo "错误: 文件复制过程中出现问题。"
+            exit 1
+          fi
 
-    - name: Run custom post-build script
-      run: '[[ -f post-build.sh ]] && . post-build.sh || :'
+      - name: Verify copied adduser files
+        run: |
+          DEST_DIR="padavan-ng/trunk/user"  # 确保这里重新设置 DEST_DIR
+          echo "Verifying copied files in $DEST_DIR:"
+          ls -la "$DEST_DIR"  # 确保这里使用有效的目标目录
 
-    - name: Prepare artifacts
-      run: |
-        FW_FILE_NAME="$(find padavan-ng/trunk/images -type f -regextype posix-extended -iregex ".*\.(trx|bin)$" \
-                        -printf "%T@\t%f\n" | sort -V | tail -1 | cut -f2)"
-        cp "padavan-ng/trunk/images/$FW_FILE_NAME" .
-        echo "FW_FILE_NAME=$FW_FILE_NAME" >> $GITHUB_ENV
-        echo "BUILD_TIMESTAMP=$(date '+%Y.%m.%d_%H.%M.%S')" >> $GITHUB_ENV
+      - name: Install themes
+        run: |
+          if [[ -n $PADAVAN_THEMES ]]; then
+            git clone --depth 1 -b "$PADAVAN_THEMES_BRANCH" "$PADAVAN_THEMES_REPO" themes
+            cp -r themes/common-theme themes/jquery.js padavan-ng/trunk/user/www/n56u_ribbon_fixed
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: padavan-ng_${{ env.CONFIG_VENDOR }}_${{ env.CONFIG_FIRMWARE_PRODUCT_ID }}_${{ env.BUILD_TIMESTAMP }}
-        retention-days: 7
-        path: |
-          ${{ env.FW_FILE_NAME }}
-          build.config
+            for theme in $PADAVAN_THEMES; do
+              echo "Installing $theme theme"
+              cp -r "themes/$theme-theme" padavan-ng/trunk/user/www/n56u_ribbon_fixed
+            done
+          fi
 
-    - name: Check firmware size
-      run: |
-        partitions=padavan-ng/trunk/configs/boards/$CONFIG_VENDOR/$CONFIG_FIRMWARE_PRODUCT_ID/partitions.config
-        max_fw_size="$(awk '/Firmware/ { getline; getline; sub(",", ""); print strtonum($2); }' "$partitions")"
-        fw_size="$(stat -c %s "$FW_FILE_NAME")"
+      - name: Run custom pre-build script
+        run: '[[ -f pre-build.sh ]] && . pre-build.sh || :'
 
-        if ((fw_size > max_fw_size)); then
-          fw_size_fmtd="$(numfmt --grouping "$fw_size") bytes"
-          max_fw_size_fmtd="$(numfmt --grouping "$max_fw_size") bytes"
-          echo "Firmware size ($fw_size_fmtd) exceeds max size ($max_fw_size_fmtd) for your target device"
-          exit 1
-        fi
+      - name: Build firmware
+        run: |
+          cp build.config padavan-ng/trunk/.config
+          pushd padavan-ng/trunk
+          ./clear_tree.sh
+          ./build_firmware.sh
+          popd
+
+      - name: Run custom post-build script
+        run: '[[ -f post-build.sh ]] && . post-build.sh || :'
+
+      - name: Prepare artifacts
+        run: |
+          FW_FILE_NAME="$(find padavan-ng/trunk/images -type f -regextype posix-extended -iregex ".*\.(trx|bin)$" \
+                          -printf "%T@\t%f\n" | sort -V | tail -1 | cut -f2)"
+          cp "padavan-ng/trunk/images/$FW_FILE_NAME" .
+          echo "FW_FILE_NAME=$FW_FILE_NAME" >> $GITHUB_ENV
+          echo "BUILD_TIMESTAMP=$(date '+%Y.%m.%d_%H.%M.%S')" >> $GITHUB_ENV
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: padavan-ng_${{ env.CONFIG_VENDOR }}_${{ env.CONFIG_FIRMWARE_PRODUCT_ID }}_${{ env.BUILD_TIMESTAMP }}
+          retention-days: 7
+          path: |
+            ${{ env.FW_FILE_NAME }}
+            build.config
+
+      - name: Check firmware size
+        run: |
+          partitions=padavan-ng/trunk/configs/boards/$CONFIG_VENDOR/$CONFIG_FIRMWARE_PRODUCT_ID/partitions.config
+          max_fw_size="$(awk '/Firmware/ { getline; getline; sub(",", ""); print strtonum($2); }' "$partitions")"
+          fw_size="$(stat -c %s "$FW_FILE_NAME")"
+
+          if ((fw_size > max_fw_size)); then
+            fw_size_fmtd="$(numfmt --grouping "$fw_size") bytes"
+            max_fw_size_fmtd="$(numfmt --grouping "$max_fw_size") bytes"
+            echo "Firmware size ($fw_size_fmtd) exceeds max size ($max_fw_size_fmtd) for your target device"
+            exit 1
+          fi
