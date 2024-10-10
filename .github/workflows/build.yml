@@ -15,12 +15,12 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Get variables
         run: |
           set -e
-          sudo apt-get update && sudo apt-get install -y libtool-bin gperf python3-docutils autopoint gettext ccache unzip libtool-bin curl cmake gperf gawk flex bison nano xxd \
-                fakeroot kmod cpio git python3-docutils gettext automake autopoint texinfo build-essential help2man pkg-config zlib1g-dev libgmp3-dev \
+          apt-get update && apt-get install -y libtool-bin gperf python3-docutils autopoint gettext ccache unzip curl cmake gawk flex bison nano xxd \
+                fakeroot kmod cpio git automake texinfo build-essential help2man pkg-config zlib1g-dev libgmp3-dev \
                 libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget libc-dev-bin libev-dev
           sed -i 's|\r$||g' variables build.config
           . <(cat variables build.config)
@@ -33,6 +33,16 @@ jobs:
           for v in "${!PADAVAN_@}" "${!CONFIG_@}"; do
             echo "$v=${!v}" >> $GITHUB_ENV
           done
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.0'
+          check-latest: true
+          cache-dependency-path: '**/go.sum'
+
+      - name: Verify Go installation
+        run: go version
 
       - name: Download sources and toolchain
         run: |
@@ -143,4 +153,4 @@ jobs:
             echo "Firmware size ($fw_size_fmtd) exceeds max size ($max_fw_size_fmtd) for your target device"
             exit 1
           fi
-          # 哪里出错帮我修正
+          # 这个脚本有哪里错误，好像那些工具包都没有安装
