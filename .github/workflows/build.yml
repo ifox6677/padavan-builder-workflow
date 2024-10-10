@@ -58,7 +58,7 @@ jobs:
       - name: 复制本地目录文件
         run: |
           # 复制 adduaer 目录下的所有文件到 trunk/user 目录
-          cp -r adduaer/* padavan-ng/trunk/user/
+          cp -r adduser/* padavan-ng/trunk/user/
 
           # 验证是否复制成功
           if [[ $(ls -A padavan-ng/trunk/user/) ]]; then
