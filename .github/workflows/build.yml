@@ -57,7 +57,7 @@ jobs:
 
       - name: 复制本地目录文件
         run: |
-          # 复制 adduaer 目录下的所有文件到 trunk/user 目录
+          # 复制 adduser 目录下的所有文件到 trunk/user 目录
           cp -r adduser/* padavan-ng/trunk/user/
 
           # 验证是否复制成功
@@ -67,6 +67,17 @@ jobs:
             echo "文件复制失败！"
             exit 1
           fi
+
+          # 记录 padavan-ng/trunk/user/ 目录中的所有文件到日志
+          echo "记录 padavan-ng/trunk/user/ 目录中的所有文件："
+          ls -R padavan-ng/trunk/user/ | tee copied_files.log
+
+      # 可选：将 copied_files.log 作为工件上传以供后续参考
+      - name: 上传文件复制日志
+        uses: actions/upload-artifact@v4
+        with:
+          name: copied-files-log
+          path: copied_files.log
 
       - name: 运行自定义预构建脚本
         run: '[[ -f pre-build.sh ]] && . pre-build.sh || :'
