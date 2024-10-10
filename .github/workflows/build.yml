@@ -1,18 +1,6 @@
-name: Build firmware
-
-on:
-  workflow_dispatch:
-  push:
-    tags:
-      - '*'
-
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: registry.gitlab.com/hadzhioglu/padavan-ng
-    defaults: 
-      run: 
-        shell: bash
     steps:
       - uses: actions/checkout@v4
 
@@ -53,6 +41,14 @@ jobs:
           git clone -b "$PADAVAN_BRANCH" "$PADAVAN_REPO"
           git -C padavan-ng checkout "$PADAVAN_COMMIT"
           wget -qO- "$PADAVAN_TOOLCHAIN_URL" | tar -C padavan-ng --zstd -xf -
+
+      - name: List padavan-ng/trunk contents
+        run: |
+          echo "Listing contents of padavan-ng/trunk:"
+          ls -la padavan-ng/trunk
+
+      # 其他步骤保持不变，或根据需要调整
+
 
       - name: Replace statefile
         run: |
