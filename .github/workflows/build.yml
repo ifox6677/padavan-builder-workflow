@@ -12,7 +12,12 @@ jobs:
     container: registry.gitlab.com/hadzhioglu/padavan-ng
     defaults: { run: { shell: bash } }
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version: '1.23.0'
+        check-latest: true
+        cache-dependency-path: '**/go.sum'
+   # - uses: actions/checkout@v4
 
     - name: Get variables
       run: |
