@@ -19,10 +19,15 @@ jobs:
       - name: Get variables
         run: |
           sudo apt-get update && sudo apt-get install -y libtool-bin gperf python3-docutils autopoint gettext ccache unzip libtool-bin curl cmake gperf gawk flex bison nano xxd
-                fakeroot kmod cpio git python3-docutils gettext automake autopoint texinfo build-essential help2man pkg-config zlib1g-dev libgmp3-dev
-                libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget libc-dev-bin libev-dev
+          fakeroot kmod cpio git python3-docutils gettext automake autopoint texinfo build-essential help2man pkg-config zlib1g-dev libgmp3-dev
+          libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget libc-dev-bin libev-dev
           sed -i 's|\r$||g' variables build.config
           . <(cat variables build.config)
+          # Check if necessary variables are set
+          if [[ -z "$PADAVAN_BRANCH" || -z "$PADAVAN_REPO" || -z "$PADAVAN_COMMIT" || -z "$PADAVAN_TOOLCHAIN_URL" ]]; then
+            echo "Error: Required environment variables are not set."
+            exit 1
+          fi
           PADAVAN_THEMES="${PADAVAN_THEMES[*]}"
           for v in "${!PADAVAN_@}" "${!CONFIG_@}"; do
             echo "$v=${!v}" >> $GITHUB_ENV
@@ -38,63 +43,48 @@ jobs:
       - name: Replace statefile
         run: |
           if [ -f userinfo/state.js ]; then
-            # 确保目标目录存在
-            # mkdir -p padavan-ng/trunk/user/www/n56u_ribbon_fixed
             cp userinfo/state.js padavan-ng/trunk/user/www/n56u_ribbon_fixed/state.js
-            echo "statefile 已成功替换。"
+            echo "statefile has been successfully replaced."
           else
-            echo "新的 statefile 'userinfo/state.js' 未找到！"
+            echo "New statefile 'userinfo/state.js' not found!"
             exit 1
           fi
 
-      # 新增步骤：复制 adduser 文件
       - name: Copy adduser files
         run: |
-          echo "当前目录内容:"
-          ls -la  # 列出当前目录的所有文件和目录
-
-          # 确保源目录 adduser 存在
+          echo "Current directory contents:"
+          ls -la  # List current directory files
+          # Ensure source directory adduser exists
           if [ ! -d "./adduser" ]; then
-            echo "错误: 源目录 './adduser' 不存在。请确认路径是否正确。"
+            echo "Error: Source directory './adduser' does not exist. Please check the path."
             exit 1
           fi
-
-          # 确保目标目录存在，如果不存在则创建
+          # Ensure target directory exists, create if not
           DEST_DIR="padavan-ng/trunk/user"
-          echo "目标目录为: $DEST_DIR"  # 输出目标目录
-          if [ ! -d "$DEST_DIR" ]; then
-            echo "目标目录 '$DEST_DIR' 不存在，正在创建..."
-            mkdir -p "$DEST_DIR"
-            if [ $? -ne 0 ]; then
-              echo "错误: 无法创建目标目录 '$DEST_DIR'。请检查权限。"
-              exit 1
-            fi
-          fi
+          echo "Target directory: $DEST_DIR"
+          mkdir -p "$DEST_DIR" || { echo "Error: Cannot create target directory '$DEST_DIR'. Check permissions."; exit 1; }
 
-          # 复制所有文件和目录，包括隐藏文件
-          echo "正在将 './adduser' 中的所有内容复制到 '$DEST_DIR'..."
+          # Copy all files and directories, including hidden files
+          echo "Copying contents from './adduser' to '$DEST_DIR'..."
           cp -a ./adduser/. "$DEST_DIR"/
-
-          # 验证复制是否成功
           if [ $? -eq 0 ]; then
-            echo "文件复制成功！"
+            echo "File copy successful!"
           else
-            echo "错误: 文件复制过程中出现问题。"
+            echo "Error: There was an issue during file copy."
             exit 1
           fi
 
       - name: Verify copied adduser files
         run: |
-          DEST_DIR="padavan-ng/trunk/user"  # 确保这里重新设置 DEST_DIR
+          DEST_DIR="padavan-ng/trunk/user"
           echo "Verifying copied files in $DEST_DIR:"
-          ls -la "$DEST_DIR"  # 确保这里使用有效的目标目录
+          ls -la "$DEST_DIR"
 
       - name: Install themes
         run: |
           if [[ -n $PADAVAN_THEMES ]]; then
             git clone --depth 1 -b "$PADAVAN_THEMES_BRANCH" "$PADAVAN_THEMES_REPO" themes
             cp -r themes/common-theme themes/jquery.js padavan-ng/trunk/user/www/n56u_ribbon_fixed
-
             for theme in $PADAVAN_THEMES; do
               echo "Installing $theme theme"
               cp -r "themes/$theme-theme" padavan-ng/trunk/user/www/n56u_ribbon_fixed
@@ -137,7 +127,6 @@ jobs:
           partitions=padavan-ng/trunk/configs/boards/$CONFIG_VENDOR/$CONFIG_FIRMWARE_PRODUCT_ID/partitions.config
           max_fw_size="$(awk '/Firmware/ { getline; getline; sub(",", ""); print strtonum($2); }' "$partitions")"
           fw_size="$(stat -c %s "$FW_FILE_NAME")"
-
           if ((fw_size > max_fw_size)); then
             fw_size_fmtd="$(numfmt --grouping "$fw_size") bytes"
             max_fw_size_fmtd="$(numfmt --grouping "$max_fw_size") bytes"
