@@ -21,7 +21,9 @@ jobs:
           set -e
           apt-get update && apt-get install -y libtool-bin gperf python3-docutils autopoint gettext ccache unzip curl cmake gawk flex bison nano xxd \
                 fakeroot kmod cpio git automake texinfo build-essential help2man pkg-config zlib1g-dev libgmp3-dev \
-                libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget libc-dev-bin libev-dev
+                libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget libc-dev-bin libev-dev libuv-dev libjson-c-dev
+          echo "Installed packages:"
+          dpkg -l | grep -E 'libtool-bin|gperf|python3-docutils|autopoint|gettext|ccache|unzip|curl|cmake|gawk|flex|bison|nano|xxd|fakeroot|kmod|cpio|git|automake|texinfo|build-essential|help2man|pkg-config|zlib1g-dev|libgmp3-dev|libmpc-dev|libmpfr-dev|libncurses5-dev|libltdl-dev|wget|libc-dev-bin|libev-dev|libuv-dev|libjson-c-dev'
           sed -i 's|\r$||g' variables build.config
           . <(cat variables build.config)
           # Check if necessary variables are set
@@ -116,6 +118,7 @@ jobs:
           set -e
           cp build.config padavan-ng/trunk/.config
           pushd padavan-ng/trunk
+          cmake . -DCMAKE_INCLUDE_PATH=/usr/include -DCMAKE_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
           ./clear_tree.sh
           ./build_firmware.sh
           popd
