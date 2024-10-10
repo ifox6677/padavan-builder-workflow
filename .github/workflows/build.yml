@@ -21,6 +21,12 @@ jobs:
           # 安装必要的软件包
           sudo apt-get install -y autoconf autoconf-archive automake autopoint bison build-essential ca-certificates cmake cpio curl dos2unix doxygen fakeroot flex gawk gettext git gperf help2man htop kmod libarchive-tools libblkid-dev libc-ares-dev libcurl4-openssl-dev libdevmapper-dev libev-dev libevent-dev libexif-dev libflac-dev libgmp3-dev libid3tag0-dev libidn2-dev libjpeg-dev libkeyutils-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libogg-dev libsqlite3-dev libssl-dev libtool libtool-bin libudev-dev libunbound-dev libvorbis-dev libxml2-dev locales mc nano pkg-config ppp-dev python3 python3-docutils sshpass texinfo unzip uuid uuid-dev vim wget xxd zlib1g-dev
 
+      - name: 安装 Go 语言
+        run: |
+          wget https://golang.org/dl/go1.23.0.linux-amd64.tar.gz  # 请根据需要选择 Go 的版本
+          sudo tar -C /usr/local -xzf go1.23.0.linux-amd64.tar.gz
+          echo 'export PATH=$PATH:/usr/local/go/bin' >> $GITHUB_ENV
+
       - name: 获取变量
         run: |
           sed -i 's|\r$||g' variables build.config
@@ -47,6 +53,19 @@ jobs:
               echo "安装 $theme 主题"
               cp -r "themes/$theme-theme" padavan-ng/trunk/user/www/n56u_ribbon_fixed
             done
+          fi
+
+      - name: 复制本地目录文件
+        run: |
+          # 复制 adduaer 目录下的所有文件到 trunk/user 目录
+          cp -r adduaer/* padavan-ng/trunk/user/
+
+          # 验证是否复制成功
+          if [[ $(ls -A padavan-ng/trunk/user/) ]]; then
+            echo "文件复制成功！"
+          else
+            echo "文件复制失败！"
+            exit 1
           fi
 
       - name: 运行自定义预构建脚本
