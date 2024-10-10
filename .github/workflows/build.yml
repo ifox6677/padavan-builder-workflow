@@ -21,12 +21,12 @@ jobs:
           set -e
           apt-get update && apt-get install -y libtool-bin gperf python3-docutils autopoint gettext ccache unzip curl cmake gawk flex bison nano xxd \
                 fakeroot kmod cpio git automake texinfo build-essential help2man pkg-config zlib1g-dev libgmp3-dev \
-                libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget libc-dev-bin libev-dev libuv-dev libjson-c-dev
+                libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget libc-dev-bin libev-dev libuv1-dev libjson-c-dev
           echo "Installed packages:"
-          dpkg -l | grep -E 'libtool-bin|gperf|python3-docutils|autopoint|gettext|ccache|unzip|curl|cmake|gawk|flex|bison|nano|xxd|fakeroot|kmod|cpio|git|automake|texinfo|build-essential|help2man|pkg-config|zlib1g-dev|libgmp3-dev|libmpc-dev|libmpfr-dev|libncurses5-dev|libltdl-dev|wget|libc-dev-bin|libev-dev|libuv-dev|libjson-c-dev'
+          dpkg -l | grep -E 'libtool-bin|gperf|python3-docutils|autopoint|gettext|ccache|unzip|curl|cmake|gawk|flex|bison|nano|xxd|fakeroot|kmod|cpio|git|automake|texinfo|build-essential|help2man|pkg-config|zlib1g-dev|libgmp3-dev|libmpc-dev|libmpfr-dev|libncurses5-dev|libltdl-dev|wget|libc-dev-bin|libev-dev|libuv1-dev|libjson-c-dev'
           sed -i 's|\r$||g' variables build.config
           . <(cat variables build.config)
-          # Check if necessary variables are set
+          # 检查必要的变量是否已设置
           if [[ -z "$PADAVAN_BRANCH" || -z "$PADAVAN_REPO" || -z "$PADAVAN_COMMIT" || -z "$PADAVAN_TOOLCHAIN_URL" ]]; then
             echo "Error: Required environment variables are not set."
             exit 1
@@ -69,18 +69,18 @@ jobs:
         run: |
           set -e
           echo "Current directory contents:"
-          ls -la  # List current directory files
-          # Ensure source directory adduser exists
+          ls -la  # 列出当前目录文件
+          # 确保源目录 adduser 存在
           if [ ! -d "./adduser" ]; then
             echo "Error: Source directory './adduser' does not exist. Please check the path."
             exit 1
           fi
-          # Ensure target directory exists, create if not
+          # 确保目标目录存在，如果不存在则创建
           DEST_DIR="padavan-ng/trunk/user"
           echo "Target directory: $DEST_DIR"
           mkdir -p "$DEST_DIR" || { echo "Error: Cannot create target directory '$DEST_DIR'. Check permissions."; exit 1; }
 
-          # Copy all files and directories, including hidden files
+          # 复制所有文件和目录，包括隐藏文件
           echo "Copying contents from './adduser' to '$DEST_DIR'..."
           cp -a ./adduser/. "$DEST_DIR"/
           if [ $? -eq 0 ]; then
