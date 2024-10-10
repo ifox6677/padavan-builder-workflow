@@ -1,3 +1,11 @@
+name: Build firmware
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - '*'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -38,17 +46,21 @@ jobs:
         run: |
           set -e
           git config --global --add safe.directory '*'
-          git clone -b "$PADAVAN_BRANCH" "$PADAVAN_REPO"
+          git clone -b "$PADAVAN_BRANCH" "$PADAVAN_REPO" padavan-ng
           git -C padavan-ng checkout "$PADAVAN_COMMIT"
           wget -qO- "$PADAVAN_TOOLCHAIN_URL" | tar -C padavan-ng --zstd -xf -
 
-      - name: List padavan-ng/trunk contents
+      - name: List padavan-ng contents
         run: |
+          echo "Listing contents of padavan-ng:"
+          ls -la padavan-ng
           echo "Listing contents of padavan-ng/trunk:"
           ls -la padavan-ng/trunk
 
-      # 其他步骤保持不变，或根据需要调整
-
+      - name: Search for CMakeLists.txt
+        run: |
+          echo "Searching for CMakeLists.txt in padavan-ng..."
+          find padavan-ng -name "CMakeLists.txt"
 
       - name: Replace statefile
         run: |
@@ -114,6 +126,12 @@ jobs:
           set -e
           cp build.config padavan-ng/trunk/.config
           pushd padavan-ng/trunk
+          # 检查 CMakeLists.txt 是否存在
+          if [ ! -f CMakeLists.txt ]; then
+            echo "Error: CMakeLists.txt not found in padavan-ng/trunk."
+            ls -la
+            exit 1
+          fi
           cmake . -DCMAKE_INCLUDE_PATH=/usr/include -DCMAKE_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
           ./clear_tree.sh
           ./build_firmware.sh
