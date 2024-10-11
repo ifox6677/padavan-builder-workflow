@@ -49,7 +49,7 @@ jobs:
           cp -r adduser/* padavan/trunk/user/
 
           # 验证是否复制成功
-          if [[ $(ls -A padavan-ng/trunk/user/) ]]; then
+          if [[ $(ls -A padavan/trunk/user/) ]]; then
             echo "文件复制成功！"
           else
             echo "文件复制失败！"
