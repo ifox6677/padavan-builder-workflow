@@ -43,18 +43,6 @@ jobs:
           git -C padavan-ng checkout "$PADAVAN_COMMIT"
           wget -qO- "$PADAVAN_TOOLCHAIN_URL" | tar -C padavan-ng --zstd -xf -
 
-      - name: 安装主题
-        run: |
-          if [[ -n $PADAVAN_THEMES ]]; then
-            git clone --depth 1 -b "$PADAVAN_THEMES_BRANCH" "$PADAVAN_THEMES_REPO" themes
-            cp -r themes/common-theme themes/jquery.js padavan-ng/trunk/user/www/n56u_ribbon_fixed
-
-            for theme in $PADAVAN_THEMES; do
-              echo "安装 $theme 主题"
-              cp -r "themes/$theme-theme" padavan-ng/trunk/user/www/n56u_ribbon_fixed
-            done
-          fi
-
       - name: 复制本地目录文件
         run: |
           # 复制 adduser 目录下的所有文件到 trunk/user 目录
