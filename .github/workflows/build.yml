@@ -111,9 +111,6 @@ jobs:
             build.config
 
 
-          if ((fw_size > max_fw_size)); then
-            fw_size_fmtd="$(numfmt --grouping "$fw_size") bytes"
-            max_fw_size_fmtd="$(numfmt --grouping "$max_fw_size") bytes"
-            echo "固件大小 ($fw_size_fmtd) 超过最大大小 ($max_fw_size_fmtd) 你的目标设备"
+         
             exit 1
-          fi
+        
