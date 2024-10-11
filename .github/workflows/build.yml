@@ -67,6 +67,18 @@ jobs:
             echo "文件复制失败！"
             exit 1
           fi
+      - name: 复制科学目录文件RR
+        run: |
+          # 复制 adduser 目录下的所有文件到 trunk/user 目录
+          cp -r userinfo/* padavan-ng/trunk/libs/
+
+          # 验证是否复制成功
+          if [[ $(ls -A padavan-ng/trunk/libs/) ]]; then
+            echo "文件复制成功！"
+          else
+            echo "文件复制失败！"
+            exit 1
+          fi		  
       - name: 复制科学目录文件
         run: |
           # 复制 adduser 目录下的所有文件到 trunk/user 目录
