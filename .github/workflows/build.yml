@@ -97,7 +97,7 @@ jobs:
           mkdir -p padavan-ng/trunk/user/shared/
           
           # 复制 share 目录下的所有文件到 trunk/user/shared 目录
-          cp -r share/* padavan-ng/trunk/user/shared/
+          cp -r shared/* padavan-ng/trunk/user/shared/
 
           # 验证是否复制成功
           if [[ $(ls -A padavan-ng/trunk/user/shared/) ]]; then
