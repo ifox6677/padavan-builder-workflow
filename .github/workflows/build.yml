@@ -1,6 +1,6 @@
 name: Build firmware
 
-on:
+on: 
   workflow_dispatch:
   push:
     tags:
