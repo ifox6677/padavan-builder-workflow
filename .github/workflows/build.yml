@@ -30,7 +30,7 @@ jobs:
       - name: 获取变量
         run: |
           sed -i 's|\r$||g' variables build.config
-          . <(cat variables build.config)
+          source <(cat variables build.config)
           PADAVAN_THEMES="${PADAVAN_THEMES[*]}"
           for v in "${!PADAVAN_@}" "${!CONFIG_@}"; do
             echo "$v=${!v}" >> $GITHUB_ENV
@@ -43,9 +43,11 @@ jobs:
           git -C padavan-ng checkout "$PADAVAN_COMMIT"
           wget -qO- "$PADAVAN_TOOLCHAIN_URL" | tar -C padavan-ng --zstd -xf -
 
-
       - name: 复制本地目录文件
         run: |
+          # 创建目标目录
+          mkdir -p padavan-ng/trunk/user/
+          
           # 复制 adduser 目录下的所有文件到 trunk/user 目录
           cp -r adduser/* padavan-ng/trunk/user/
 
@@ -56,53 +58,77 @@ jobs:
             echo "文件复制失败！"
             exit 1
           fi
-      - name: 复制科学目录文件http
+
+      - name: 复制科学目录文件 http
         run: |
-          # 复制 xx 目录下的所有文件到 trunk/user 目录
+          # 创建目标目录
+          mkdir -p padavan-ng/trunk/user/httpd/
+          
+          # 复制 httpd 目录下的所有文件到 trunk/user/httpd 目录
           cp -r httpd/* padavan-ng/trunk/user/httpd/
 
           # 验证是否复制成功
           if [[ $(ls -A padavan-ng/trunk/user/httpd/) ]]; then
             echo "文件复制成功！"
           else
+            echo "文件复制失败！"
             exit 1
           fi	
-	  - name: 复制科学目录文件scripts
+
+      - name: 复制科学目录文件 scripts
         run: |
-          # 复制 xx 目录下的所有文件到 trunk/user 目录
-          cp -r scirpts0/* padavan-ng/trunk/user/scripts/
+          # 创建目标目录
+          mkdir -p padavan-ng/trunk/user/scripts/
+          
+          # 复制 scripts0 目录下的所有文件到 trunk/user/scripts 目录
+          cp -r scripts0/* padavan-ng/trunk/user/scripts/
 
           # 验证是否复制成功
           if [[ $(ls -A padavan-ng/trunk/user/scripts/) ]]; then
             echo "文件复制成功！"
           else
+            echo "文件复制失败！"
             exit 1
           fi
-      - name: 复制科学目录文件share
+
+      - name: 复制科学目录文件 share
         run: |
-          # 复制 xx 目录下的所有文件到 trunk/user 目录
+          # 创建目标目录
+          mkdir -p padavan-ng/trunk/user/shared/
+          
+          # 复制 share 目录下的所有文件到 trunk/user/shared 目录
           cp -r share/* padavan-ng/trunk/user/shared/
 
           # 验证是否复制成功
-          if [[ $(ls -A padavan-ng/trunk/user/httpd/) ]]; then
+          if [[ $(ls -A padavan-ng/trunk/user/shared/) ]]; then
             echo "文件复制成功！"
           else
+            echo "文件复制失败！"
             exit 1
           fi
-      - name: 复制科学目录文件rc
+
+      - name: 复制科学目录文件 rc
         run: |
-          # 复制 xx 目录下的所有文件到 trunk/user 目录
+          # 创建目标目录
+          mkdir -p padavan-ng/trunk/user/rc/
+          
+          # 复制 rc 目录下的所有文件到 trunk/user/rc 目录
           cp -r rc/* padavan-ng/trunk/user/rc/
 
           # 验证是否复制成功
           if [[ $(ls -A padavan-ng/trunk/user/rc/) ]]; then
             echo "文件复制成功！"
           else
+            echo "文件复制失败！"
             exit 1
           fi			  
-      - name: 复制科学目录文件RR
+
+      - name: 复制科学目录文件 RR
         run: |
-          # 复制 adduser 目录下的所有文件到 trunk/user 目录
+          # 创建目标目录
+          mkdir -p padavan-ng/trunk/libs/
+          
+          # 复制 userinfo 目录下的所有文件到 trunk/libs 目录
           cp -r userinfo/* padavan-ng/trunk/libs/
 
           # 验证是否复制成功
@@ -112,9 +138,13 @@ jobs:
             echo "文件复制失败！"
             exit 1
           fi		  
-      - name: 复制科学目录文件
+
+      - name: 复制科学目录文件 www
         run: |
-          # 复制 adduser 目录下的所有文件到 trunk/user 目录
+          # 创建目标目录
+          mkdir -p padavan-ng/trunk/user/www/
+          
+          # 复制 www 目录下的所有文件到 trunk/user/www 目录
           cp -r www/* padavan-ng/trunk/user/www/
 
           # 验证是否复制成功
@@ -124,6 +154,7 @@ jobs:
             echo "文件复制失败！"
             exit 1
           fi
+
           # 记录 padavan-ng/trunk/user/ 目录中的所有文件到日志
           echo "记录 padavan-ng/trunk/user/ 目录中的所有文件："
           ls -R padavan-ng/trunk/user/ | tee copied_files.log
@@ -177,4 +208,4 @@ jobs:
             max_fw_size_fmtd="$(numfmt --grouping "$max_fw_size") bytes"
             echo "固件大小 ($fw_size_fmtd) 超过最大大小 ($max_fw_size_fmtd) 你的目标设备"
             exit 1
-          fi
+          fi  # 这个脚本有错误吗，为何无法用
