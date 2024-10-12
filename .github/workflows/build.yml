@@ -62,7 +62,7 @@ jobs:
       - name: 复制科学目录文件 http
         run: |
           # 创建目标目录
-          mkdir -p padavan-ng/trunk/user/httpd/
+          #mkdir -p padavan-ng/trunk/user/httpd/
           
           # 复制 httpd 目录下的所有文件到 trunk/user/httpd 目录
           cp -r httpd/* padavan-ng/trunk/user/httpd/
@@ -78,7 +78,7 @@ jobs:
       - name: 复制科学目录文件 scripts
         run: |
           # 创建目标目录
-          mkdir -p padavan-ng/trunk/user/scripts/
+          #mkdir -p padavan-ng/trunk/user/scripts/
           
           # 复制 scripts0 目录下的所有文件到 trunk/user/scripts 目录
           cp -r scripts0/* padavan-ng/trunk/user/scripts/
@@ -94,7 +94,7 @@ jobs:
       - name: 复制科学目录文件 share
         run: |
           # 创建目标目录
-          mkdir -p padavan-ng/trunk/user/shared/
+          #mkdir -p padavan-ng/trunk/user/shared/
           
           # 复制 share 目录下的所有文件到 trunk/user/shared 目录
           cp -r shared/* padavan-ng/trunk/user/shared/
@@ -110,7 +110,7 @@ jobs:
       - name: 复制科学目录文件 rc
         run: |
           # 创建目标目录
-          mkdir -p padavan-ng/trunk/user/rc/
+          #mkdir -p padavan-ng/trunk/user/rc/
           
           # 复制 rc 目录下的所有文件到 trunk/user/rc 目录
           cp -r rc/* padavan-ng/trunk/user/rc/
@@ -126,7 +126,7 @@ jobs:
       - name: 复制科学目录文件 RR
         run: |
           # 创建目标目录
-          mkdir -p padavan-ng/trunk/libs/
+          #mkdir -p padavan-ng/trunk/libs/
           
           # 复制 userinfo 目录下的所有文件到 trunk/libs 目录
           cp -r userinfo/* padavan-ng/trunk/libs/
@@ -142,7 +142,7 @@ jobs:
       - name: 复制科学目录文件 www
         run: |
           # 创建目标目录
-          mkdir -p padavan-ng/trunk/user/www/
+          #mkdir -p padavan-ng/trunk/user/www/
           
           # 复制 www 目录下的所有文件到 trunk/user/www 目录
           cp -r www/* padavan-ng/trunk/user/www/
