@@ -15,17 +15,7 @@ jobs:
     - uses: actions/setup-go@v5
       with:
         go-version: '1.23.0'
-        check-latest: true
-        cache-dependency-path: '**/go.sum'
-   # - uses: actions/checkout@v4
-
-    - name: Get variables
-      run: |
-        sudo apt-get update && sudo apt-get install -y libtool-bin gperf python3-docutils autopoint gettext ccache
-        sed -i 's|\r$||g' variables build.config
-        . <(cat variables build.config)
-        PADAVAN_THEMES="${PADAVAN_THEMES[*]}"
-        for v in "${!PADAVAN_@}" "${!CONFIG_@}"; do
+        check-latest do
           echo "$v=${!v}" >> $GITHUB_ENV
         done
 
