@@ -46,7 +46,7 @@ jobs:
       - name: 复制本地目录文件
         run: |
           # 创建目标目录
-          mkdir -p padavan-ng/trunk/user/
+          #mkdir -p padavan-ng/trunk/user/
           
           # 复制 adduser 目录下的所有文件到 trunk/user 目录
           cp -r adduser/* padavan-ng/trunk/user/
