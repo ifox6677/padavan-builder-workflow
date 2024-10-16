@@ -1,4 +1,4 @@
-name: Build firmware
+name: Build firmware0
 
 on: 
   workflow_dispatch:
