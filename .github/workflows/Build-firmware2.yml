@@ -53,7 +53,8 @@ jobs:
         ./clear_tree.sh
         ./build_firmware.sh
         popd
-
+    - name: Grant execute permission
+      run: chmod +x ./trunk/clear_tree.sh
     - name: Run custom post-build script
       run: '[[ -f post-build.sh ]] && . post-build.sh || :'
 
