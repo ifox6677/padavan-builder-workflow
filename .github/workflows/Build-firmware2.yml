@@ -46,7 +46,10 @@ jobs:
     - name: Run custom pre-build script
       run: '[[ -f pre-build.sh ]] && . pre-build.sh || :'
     - name: Grant execute permission
-      run: chmod +x padavan-ng/trunk/clear_tree.sh
+      run: |
+        chmod +x padavan-ng/trunk/clear_tree.sh
+        chmod +x padavan-ng/trunk/build_firmware.sh
+
     - name: Build firmware
       run: |
         cp build.config padavan-ng/trunk/.config
